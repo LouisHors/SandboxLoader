@@ -54,6 +54,12 @@ class ContentViewModel: ObservableObject {
         isLoadingApps = false
     }
 
+    func refreshApps() {
+        Task {
+            await handleDeviceSelectionChange()
+        }
+    }
+
     func handleAppSelectionChange() async {
         guard let _ = selectedApp, let _ = selectedDevice else {
             // app is already deselected by the view binding. just clear items
@@ -144,13 +150,13 @@ class ContentViewModel: ObservableObject {
     }
 
     func refreshDevices() {
-        isLoadingDevices = true
-        errorMessage = nil
-        devices = []
-        // Directly set the selected device to nil. The view's `onChange` will handle the consequences.
-        selectedDevice = nil
-
         Task {
+            isLoadingDevices = true
+            errorMessage = nil
+            devices = []
+            // Directly set the selected device to nil. The view's `onChange` will handle the consequences.
+            selectedDevice = nil
+
             do {
                 self.devices = try await Task { try deviceManager.getDevices() }.value
             } catch {

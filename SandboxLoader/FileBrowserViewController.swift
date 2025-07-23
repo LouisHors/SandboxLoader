@@ -22,22 +22,40 @@ class FileBrowserViewController: NSViewController, NSTableViewDataSource, NSTabl
         // --- Header ---
         let headerView = NSView()
         headerView.translatesAutoresizingMaskIntoConstraints = false
+        headerView.wantsLayer = true
+        headerView.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        headerView.layer?.borderWidth = 1.0
+        headerView.layer?.borderColor = NSColor.separatorColor.cgColor
+
+
         backButton.target = self
         backButton.action = #selector(navigateBack)
+        backButton.bezelStyle = .texturedRounded
         downloadButton.target = self
         downloadButton.action = #selector(downloadSelected)
+        downloadButton.bezelStyle = .texturedRounded
         toAppListButton.target = self
         toAppListButton.action = #selector(backToAppList)
+        toAppListButton.bezelStyle = .texturedRounded
 
-        let headerStack = NSStackView(views: [toAppListButton, backButton, pathLabel, downloadButton])
+        pathLabel.font = .systemFont(ofSize: 14, weight: .medium)
+        pathLabel.textColor = .secondaryLabelColor
+        pathLabel.lineBreakMode = .byTruncatingTail
+        pathLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+
+        let headerStack = NSStackView(views: [toAppListButton, backButton, pathLabel, NSView(), downloadButton])
         headerStack.orientation = .horizontal
-        headerStack.spacing = 8
+        headerStack.spacing = 12
+        headerStack.alignment = .centerY
+        headerStack.distribution = .fill
         headerStack.translatesAutoresizingMaskIntoConstraints = false
         headerView.addSubview(headerStack)
 
         // --- Table View ---
         scrollView.documentView = tableView
         scrollView.hasVerticalScroller = true
+        scrollView.drawsBackground = false
         scrollView.translatesAutoresizingMaskIntoConstraints = false
 
         let mainStack = NSStackView(views: [headerView, scrollView])
@@ -51,7 +69,7 @@ class FileBrowserViewController: NSViewController, NSTableViewDataSource, NSTabl
             headerStack.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 12),
             headerStack.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -12),
             headerStack.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 44),
+            headerView.heightAnchor.constraint(equalToConstant: 50),
 
             mainStack.topAnchor.constraint(equalTo: view.topAnchor),
             mainStack.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -67,10 +85,18 @@ class FileBrowserViewController: NSViewController, NSTableViewDataSource, NSTabl
 
         let sizeColumn = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("SizeColumn"))
         sizeColumn.title = "Size"
+        sizeColumn.minWidth = 100
+        sizeColumn.maxWidth = 200
+
 
         tableView.addTableColumn(nameColumn)
         tableView.addTableColumn(sizeColumn)
         tableView.headerView = NSTableHeaderView()
+        tableView.backgroundColor = .white
+        tableView.usesAlternatingRowBackgroundColors = true
+        tableView.gridStyleMask = [.solidVerticalGridLineMask, .solidHorizontalGridLineMask]
+        tableView.style = .inset
+        tableView.rowHeight = 40
         tableView.sizeLastColumnToFit()
         tableView.allowsMultipleSelection = true
         tableView.doubleAction = #selector(tableViewDoubleClicked)
@@ -149,27 +175,28 @@ class FileBrowserViewController: NSViewController, NSTableViewDataSource, NSTabl
                 textField.isBezeled = false
                 textField.drawsBackground = false
                 textField.isEditable = false
+                textField.font = .systemFont(ofSize: 14)
 
                 cell?.imageView = imageView
                 cell?.textField = textField
 
                 let stack = NSStackView(views: [imageView, textField])
                 stack.orientation = .horizontal
-                stack.spacing = 8
+                stack.spacing = 10
                 stack.translatesAutoresizingMaskIntoConstraints = false
 
                 cell?.addSubview(stack)
                 NSLayoutConstraint.activate([
-                    stack.leadingAnchor.constraint(equalTo: cell!.leadingAnchor, constant: 4),
-                    stack.trailingAnchor.constraint(equalTo: cell!.trailingAnchor, constant: -4),
+                    stack.leadingAnchor.constraint(equalTo: cell!.leadingAnchor, constant: 8),
+                    stack.trailingAnchor.constraint(equalTo: cell!.trailingAnchor, constant: -8),
                     stack.centerYAnchor.constraint(equalTo: cell!.centerYAnchor)
                 ])
             }
 
             cell?.textField?.stringValue = item.name
-            let iconName = item.type == .directory ? "folder.fill" : "doc"
+            let iconName = item.type == .directory ? "folder.fill" : "doc.text.fill"
             cell?.imageView?.image = NSImage(systemSymbolName: iconName, accessibilityDescription: iconName)
-            cell?.imageView?.contentTintColor = item.type == .directory ? .systemBlue : .secondaryLabelColor
+            cell?.imageView?.contentTintColor = item.type == .directory ? NSColor(calibratedRed: 0.2, green: 0.6, blue: 0.9, alpha: 1.0) : .secondaryLabelColor
 
         } else if column.identifier.rawValue == "SizeColumn" {
             if cell == nil {
@@ -178,6 +205,9 @@ class FileBrowserViewController: NSViewController, NSTableViewDataSource, NSTabl
                 textField.isBezeled = false
                 textField.drawsBackground = false
                 textField.isEditable = false
+                textField.font = .systemFont(ofSize: 14)
+                textField.textColor = .secondaryLabelColor
+                textField.alignment = .right
 
                 cell?.textField = textField
                 cell?.addSubview(textField)
@@ -185,7 +215,7 @@ class FileBrowserViewController: NSViewController, NSTableViewDataSource, NSTabl
                 textField.translatesAutoresizingMaskIntoConstraints = false
                 NSLayoutConstraint.activate([
                     textField.leadingAnchor.constraint(equalTo: cell!.leadingAnchor, constant: 4),
-                    textField.trailingAnchor.constraint(equalTo: cell!.trailingAnchor, constant: -4),
+                    textField.trailingAnchor.constraint(equalTo: cell!.trailingAnchor, constant: -8),
                     textField.centerYAnchor.constraint(equalTo: cell!.centerYAnchor)
                 ])
             }
