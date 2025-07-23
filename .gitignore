@@ -16,10 +16,11 @@ DerivedData/
 .swiftpm/
 
 ## Other
-*.xcodeproj
+# *.xcodeproj
 xcuserdata/
 *.xccheckout
-*.xcworkspace
+# *.xcworkspace
+xcshareddata/
 !default.xcworkspace
 !default.xcodeproj
 # CocoaPods
