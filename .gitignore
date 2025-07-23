@@ -64,3 +64,4 @@ Thumbs.db
 
 ## specific to this project
 create_dmg.sh
+dist/
