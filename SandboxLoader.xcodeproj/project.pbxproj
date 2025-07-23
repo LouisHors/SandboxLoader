@@ -33,6 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				865B96BA2E2F31A300D6CA0B /* SandboxLoader */,
+				869D34972E30EB920010EE07 /* Frameworks */,
 				865B96B92E2F31A300D6CA0B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,6 +46,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		869D34972E30EB920010EE07 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -55,7 +63,7 @@
 				865B96B42E2F31A300D6CA0B /* Sources */,
 				865B96B52E2F31A300D6CA0B /* Frameworks */,
 				865B96B62E2F31A300D6CA0B /* Resources */,
-				86DB73F22E2F76460086AD94 /* ShellScript */,
+				86DB73F22E2F76460086AD94 /* Run Script */,
 			);
 			buildRules = (
 			);
@@ -116,15 +124,23 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		86DB73F22E2F76460086AD94 /* ShellScript */ = {
+		86DB73F22E2F76460086AD94 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
 			);
 			inputPaths = (
+				"$(PROJECT_DIR)/SandboxLoader/Frameworks/libcrypto.3.dylib",
+				"$(PROJECT_DIR)/SandboxLoader/Frameworks/libssl.3.dylib",
+				"$(PROJECT_DIR)/SandboxLoader/Frameworks/libplist-2.0.4.dylib",
+				"$(PROJECT_DIR)/SandboxLoader/Frameworks/libimobiledevice-glue-1.0.0.dylib",
+				"$(PROJECT_DIR)/SandboxLoader/Frameworks/libusbmuxd-2.0.7.dylib",
+				"$(PROJECT_DIR)/SandboxLoader/Frameworks/libimobiledevice-1.0.6.dylib",
 			);
+			name = "Run Script";
 			outputFileListPaths = (
 			);
 			outputPaths = (
@@ -137,7 +153,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/zsh;
-			shellScript = "#!/bin/bash\n# v8: The Final Stand. Uses explicit signing identity and robust path fixing.\n\n# 如果任何命令失败，立即停止\nset -e\n\necho \"--- Starting dylib packaging script (V7 - Refactored) ---\"\n\n# --- 步骤 0: 定义变量和辅助函数 ---\nSRC_DIR=\"${PROJECT_DIR}/SandboxLoader/Frameworks\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n\n# 辅助函数：处理单个二进制文件\n# 参数 $1: 需要被处理的文件路径\nfix_dependencies_for_file() {\n    target_file=\"$1\"\n    \n    # 如果文件不存在，则直接返回\n    if [ ! -f \"$target_file\" ]; then\n        echo \"  -> Skipping non-existent file: $(basename \"$target_file\")\"\n        return\n    fi\n    \n    echo \"--- Processing: $(basename \"$target_file\") ---\"\n    \n    # 动态发现并修正该文件的每一个依赖\n    otool -l \"$target_file\" | grep -A 2 'LC_LOAD_DYLIB' | grep 'name /' | awk '{print $2}' | while read -r old_path; do\n        lib_name=$(basename \"$old_path\")\n        \n        # 使用 POSIX 兼容的 case 语句检查这个库是不是我们打包的库之一\n        case \"$lib_name\" in\n            libcrypto.3.dylib|libssl.3.dylib|libplist-2.0.4.dylib|libimobiledevice-glue-1.0.0.dylib|libusbmuxd-2.0.7.dylib|libimobiledevice-1.0.6.dylib)\n                new_path=\"@rpath/$lib_name\"\n                echo \"  Changing '$old_path' -> '$new_path'\"\n                install_name_tool -change \"$old_path\" \"$new_path\" \"$target_file\"\n                ;;\n        esac\n    done\n}\n\n# --- 步骤 1: 确保目录存在并逐一拷贝文件 ---\necho \"--- Step 1: Preparing directory and copying dylibs ---\"\nmkdir -p \"$DEST_DIR\"\nchmod u+w \"$DEST_DIR\"\n\ncp \"$SRC_DIR/libcrypto.3.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libssl.3.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libplist-2.0.4.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libimobiledevice-glue-1.0.0.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libusbmuxd-2.0.7.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libimobiledevice-1.0.6.dylib\" \"$DEST_DIR/\"\n\n# --- 步骤 2: 逐一修正所有相关二进制文件的依赖 ---\necho \"--- Step 2: Fixing dependencies for all binaries ---\"\n\n# 修正我们自己拷贝的库之间的依赖\nfix_dependencies_for_file \"$DEST_DIR/libcrypto.3.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libssl.3.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libplist-2.0.4.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n# 修正 Xcode 生成的辅助文件\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\"\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\"\n\n# 最后修正主程序\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_PATH}\"\n\n# --- 步骤 3: 逐一修正每个库自己的身份ID ---\necho \"--- Step 3: Fixing library IDs ---\"\ninstall_name_tool -id \"@rpath/libcrypto.3.dylib\" \"$DEST_DIR/libcrypto.3.dylib\"\ninstall_name_tool -id \"@rpath/libssl.3.dylib\" \"$DEST_DIR/libssl.3.dylib\"\ninstall_name_tool -id \"@rpath/libplist-2.0.4.dylib\" \"$DEST_DIR/libplist-2.0.4.dylib\"\ninstall_name_tool -id \"@rpath/libimobiledevice-glue-1.0.0.dylib\" \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\ninstall_name_tool -id \"@rpath/libusbmuxd-2.0.7.dylib\" \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\ninstall_name_tool -id \"@rpath/libimobiledevice-1.0.6.dylib\" \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n# --- 步骤 4: 按正确顺序逐一进行代码签名 ---\necho \"--- Step 4: Code signing all binaries ---\"\nif [ -n \"${EXPANDED_CODE_SIGN_IDENTITY}\" ]; then\n    # 1. 签名被依赖的库\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libcrypto.3.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libssl.3.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libplist-2.0.4.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n    # 2. 签名辅助文件\n    if [ -f \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\" ]; then\n        codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\"\n    fi\n    if [ -f \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\" ]; then\n        codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\"\n    fi\n    \n    # 3. 最后签名主程序\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_PATH}\"\n    \n    echo \"All binaries signed successfully.\"\nfi\n\necho \"--- Run Script phase completed successfully! ---\"\n";
+			shellScript = "#!/bin/bash\n# v8: The Final Stand. Uses explicit signing identity and robust path fixing.\n\n# 如果任何命令失败，立即停止\nset -e\n\necho \"--- Starting dylib packaging script (V7 - Refactored) ---\"\n\n# --- 步骤 0: 定义变量和辅助函数 ---\nSRC_DIR=\"${PROJECT_DIR}/SandboxLoader/Frameworks\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n\n# 辅助函数：处理单个二进制文件\n# 参数 $1: 需要被处理的文件路径\nfix_dependencies_for_file() {\n    target_file=\"$1\"\n    \n    # 如果文件不存在，则直接返回\n    if [ ! -f \"$target_file\" ]; then\n        echo \"  -> Skipping non-existent file: $(basename \"$target_file\")\"\n        return\n    fi\n    \n    echo \"--- Processing: $(basename \"$target_file\") ---\"\n    \n    # 动态发现并修正该文件的每一个依赖\n    otool -l \"$target_file\" | grep -A 2 'LC_LOAD_DYLIB' | grep 'name /' | awk '{print $2}' | while read -r old_path; do\n        lib_name=$(basename \"$old_path\")\n        \n        # 使用 POSIX 兼容的 case 语句检查这个库是不是我们打包的库之一\n        case \"$lib_name\" in\n            libcrypto.3.dylib|libssl.3.dylib|libplist-2.0.4.dylib|libimobiledevice-glue-1.0.0.dylib|libusbmuxd-2.0.7.dylib|libimobiledevice-1.0.6.dylib)\n                new_path=\"@rpath/$lib_name\"\n                echo \"  Changing '$old_path' -> '$new_path'\"\n                install_name_tool -change \"$old_path\" \"$new_path\" \"$target_file\"\n                ;;\n        esac\n    done\n}\n\n# --- 步骤 1: 确保目录存在并逐一拷贝文件 ---\necho \"--- Step 1: Preparing directory and copying dylibs ---\"\nmkdir -p \"$DEST_DIR\"\nchmod u+w \"$DEST_DIR\"\n\n# 在拷贝前，强制删除可能存在的旧文件，以避免权限和覆盖问题\nrm -f \"$DEST_DIR/libcrypto.3.dylib\"\nrm -f \"$DEST_DIR/libssl.3.dylib\"\nrm -f \"$DEST_DIR/libplist-2.0.4.dylib\"\nrm -f \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\nrm -f \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\nrm -f \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\ncp \"$SRC_DIR/libcrypto.3.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libssl.3.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libplist-2.0.4.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libimobiledevice-glue-1.0.0.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libusbmuxd-2.0.7.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libimobiledevice-1.0.6.dylib\" \"$DEST_DIR/\"\n\n# --- 步骤 2: 逐一修正所有相关二进制文件的依赖 ---\necho \"--- Step 2: Fixing dependencies for all binaries ---\"\n\n# 修正我们自己拷贝的库之间的依赖\nfix_dependencies_for_file \"$DEST_DIR/libcrypto.3.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libssl.3.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libplist-2.0.4.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n# 修正 Xcode 生成的辅助文件\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\"\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\"\n\n# 最后修正主程序\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_PATH}\"\n\n# --- 步骤 3: 逐一修正每个库自己的身份ID ---\necho \"--- Step 3: Fixing library IDs ---\"\ninstall_name_tool -id \"@rpath/libcrypto.3.dylib\" \"$DEST_DIR/libcrypto.3.dylib\"\ninstall_name_tool -id \"@rpath/libssl.3.dylib\" \"$DEST_DIR/libssl.3.dylib\"\ninstall_name_tool -id \"@rpath/libplist-2.0.4.dylib\" \"$DEST_DIR/libplist-2.0.4.dylib\"\ninstall_name_tool -id \"@rpath/libimobiledevice-glue-1.0.0.dylib\" \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\ninstall_name_tool -id \"@rpath/libusbmuxd-2.0.7.dylib\" \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\ninstall_name_tool -id \"@rpath/libimobiledevice-1.0.6.dylib\" \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n# --- 步骤 4: 按正确顺序逐一进行代码签名 ---\necho \"--- Step 4: Code signing all binaries ---\"\nif [ -n \"${EXPANDED_CODE_SIGN_IDENTITY}\" ]; then\n    # 1. 签名被依赖的库\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libcrypto.3.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libssl.3.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libplist-2.0.4.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n    # 2. 签名辅助文件\n    if [ -f \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\" ]; then\n        codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\"\n    fi\n    if [ -f \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\" ]; then\n        codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\"\n    fi\n    \n    # 3. 最后签名主程序\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_PATH}\"\n    \n    echo \"All binaries signed successfully.\"\nfi\n\necho \"--- Run Script phase completed successfully! ---\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
