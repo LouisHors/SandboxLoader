@@ -1,0 +1,377 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXFileReference section */
+		865B96B82E2F31A300D6CA0B /* SandboxLoader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SandboxLoader.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		865B96BA2E2F31A300D6CA0B /* SandboxLoader */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SandboxLoader;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		865B96B52E2F31A300D6CA0B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		865B96AF2E2F31A300D6CA0B = {
+			isa = PBXGroup;
+			children = (
+				865B96BA2E2F31A300D6CA0B /* SandboxLoader */,
+				865B96B92E2F31A300D6CA0B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		865B96B92E2F31A300D6CA0B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				865B96B82E2F31A300D6CA0B /* SandboxLoader.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		865B96B72E2F31A300D6CA0B /* SandboxLoader */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 865B96C42E2F31A400D6CA0B /* Build configuration list for PBXNativeTarget "SandboxLoader" */;
+			buildPhases = (
+				865B96B42E2F31A300D6CA0B /* Sources */,
+				865B96B52E2F31A300D6CA0B /* Frameworks */,
+				865B96B62E2F31A300D6CA0B /* Resources */,
+				86DB73F22E2F76460086AD94 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				865B96BA2E2F31A300D6CA0B /* SandboxLoader */,
+			);
+			name = SandboxLoader;
+			packageProductDependencies = (
+			);
+			productName = SandboxLoader;
+			productReference = 865B96B82E2F31A300D6CA0B /* SandboxLoader.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		865B96B02E2F31A300D6CA0B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					865B96B72E2F31A300D6CA0B = {
+						CreatedOnToolsVersion = 16.4;
+					};
+				};
+			};
+			buildConfigurationList = 865B96B32E2F31A300D6CA0B /* Build configuration list for PBXProject "SandboxLoader" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 865B96AF2E2F31A300D6CA0B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 865B96B92E2F31A300D6CA0B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				865B96B72E2F31A300D6CA0B /* SandboxLoader */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		865B96B62E2F31A300D6CA0B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		86DB73F22E2F76460086AD94 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libcrypto.3.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libimobiledevice-1.0.6.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libimobiledevice-glue-1.0.0.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libplist-2.0.4.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libssl.3.dylib",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/libusbmuxd-2.0.7.dylib",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/zsh;
+			shellScript = "#!/bin/bash\n# v8: The Final Stand. Uses explicit signing identity and robust path fixing.\n\n# 如果任何命令失败，立即停止\nset -e\n\necho \"--- Starting dylib packaging script (V7 - Refactored) ---\"\n\n# --- 步骤 0: 定义变量和辅助函数 ---\nSRC_DIR=\"${PROJECT_DIR}/SandboxLoader/Frameworks\"\nDEST_DIR=\"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}\"\n\n# 辅助函数：处理单个二进制文件\n# 参数 $1: 需要被处理的文件路径\nfix_dependencies_for_file() {\n    target_file=\"$1\"\n    \n    # 如果文件不存在，则直接返回\n    if [ ! -f \"$target_file\" ]; then\n        echo \"  -> Skipping non-existent file: $(basename \"$target_file\")\"\n        return\n    fi\n    \n    echo \"--- Processing: $(basename \"$target_file\") ---\"\n    \n    # 动态发现并修正该文件的每一个依赖\n    otool -l \"$target_file\" | grep -A 2 'LC_LOAD_DYLIB' | grep 'name /' | awk '{print $2}' | while read -r old_path; do\n        lib_name=$(basename \"$old_path\")\n        \n        # 使用 POSIX 兼容的 case 语句检查这个库是不是我们打包的库之一\n        case \"$lib_name\" in\n            libcrypto.3.dylib|libssl.3.dylib|libplist-2.0.4.dylib|libimobiledevice-glue-1.0.0.dylib|libusbmuxd-2.0.7.dylib|libimobiledevice-1.0.6.dylib)\n                new_path=\"@rpath/$lib_name\"\n                echo \"  Changing '$old_path' -> '$new_path'\"\n                install_name_tool -change \"$old_path\" \"$new_path\" \"$target_file\"\n                ;;\n        esac\n    done\n}\n\n# --- 步骤 1: 确保目录存在并逐一拷贝文件 ---\necho \"--- Step 1: Preparing directory and copying dylibs ---\"\nmkdir -p \"$DEST_DIR\"\nchmod u+w \"$DEST_DIR\"\n\ncp \"$SRC_DIR/libcrypto.3.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libssl.3.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libplist-2.0.4.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libimobiledevice-glue-1.0.0.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libusbmuxd-2.0.7.dylib\" \"$DEST_DIR/\"\ncp \"$SRC_DIR/libimobiledevice-1.0.6.dylib\" \"$DEST_DIR/\"\n\n# --- 步骤 2: 逐一修正所有相关二进制文件的依赖 ---\necho \"--- Step 2: Fixing dependencies for all binaries ---\"\n\n# 修正我们自己拷贝的库之间的依赖\nfix_dependencies_for_file \"$DEST_DIR/libcrypto.3.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libssl.3.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libplist-2.0.4.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\nfix_dependencies_for_file \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n# 修正 Xcode 生成的辅助文件\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\"\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\"\n\n# 最后修正主程序\nfix_dependencies_for_file \"${TARGET_BUILD_DIR}/${EXECUTABLE_PATH}\"\n\n# --- 步骤 3: 逐一修正每个库自己的身份ID ---\necho \"--- Step 3: Fixing library IDs ---\"\ninstall_name_tool -id \"@rpath/libcrypto.3.dylib\" \"$DEST_DIR/libcrypto.3.dylib\"\ninstall_name_tool -id \"@rpath/libssl.3.dylib\" \"$DEST_DIR/libssl.3.dylib\"\ninstall_name_tool -id \"@rpath/libplist-2.0.4.dylib\" \"$DEST_DIR/libplist-2.0.4.dylib\"\ninstall_name_tool -id \"@rpath/libimobiledevice-glue-1.0.0.dylib\" \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\ninstall_name_tool -id \"@rpath/libusbmuxd-2.0.7.dylib\" \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\ninstall_name_tool -id \"@rpath/libimobiledevice-1.0.6.dylib\" \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n# --- 步骤 4: 按正确顺序逐一进行代码签名 ---\necho \"--- Step 4: Code signing all binaries ---\"\nif [ -n \"${EXPANDED_CODE_SIGN_IDENTITY}\" ]; then\n    # 1. 签名被依赖的库\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libcrypto.3.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libssl.3.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libplist-2.0.4.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libimobiledevice-glue-1.0.0.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libusbmuxd-2.0.7.dylib\"\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"$DEST_DIR/libimobiledevice-1.0.6.dylib\"\n\n    # 2. 签名辅助文件\n    if [ -f \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\" ]; then\n        codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/${PRODUCT_NAME}.debug.dylib\"\n    fi\n    if [ -f \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\" ]; then\n        codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_FOLDER_PATH}/__preview.dylib\"\n    fi\n    \n    # 3. 最后签名主程序\n    codesign --force --sign \"${EXPANDED_CODE_SIGN_IDENTITY}\" --timestamp=none --options runtime \"${TARGET_BUILD_DIR}/${EXECUTABLE_PATH}\"\n    \n    echo \"All binaries signed successfully.\"\nfi\n\necho \"--- Run Script phase completed successfully! ---\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		865B96B42E2F31A300D6CA0B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		865B96C22E2F31A400D6CA0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = W8MN6GY324;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		865B96C32E2F31A400D6CA0B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = W8MN6GY324;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		865B96C52E2F31A400D6CA0B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = x86_64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = SandboxLoader/SandboxLoader.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W8MN6GY324;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Sandbox Loader";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SandboxLoader/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hors.SandboxLoader;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "/Users/zego/Demo_Hors/SandboxLoader/SandboxLoader/SandboxLoader-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(SRCROOT)/SandboxLoader/Frameworks/include/**";
+			};
+			name = Debug;
+		};
+		865B96C62E2F31A400D6CA0B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = x86_64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = SandboxLoader/SandboxLoader.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W8MN6GY324;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Sandbox Loader";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/SandboxLoader/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hors.SandboxLoader;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "/Users/zego/Demo_Hors/SandboxLoader/SandboxLoader/SandboxLoader-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(SRCROOT)/SandboxLoader/Frameworks/include/**";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		865B96B32E2F31A300D6CA0B /* Build configuration list for PBXProject "SandboxLoader" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				865B96C22E2F31A400D6CA0B /* Debug */,
+				865B96C32E2F31A400D6CA0B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		865B96C42E2F31A400D6CA0B /* Build configuration list for PBXNativeTarget "SandboxLoader" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				865B96C52E2F31A400D6CA0B /* Debug */,
+				865B96C62E2F31A400D6CA0B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 865B96B02E2F31A300D6CA0B /* Project object */;
+}
