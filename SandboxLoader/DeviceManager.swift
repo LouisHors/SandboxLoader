@@ -118,6 +118,14 @@ class DeviceManager {
         // We only want to browse user-installed applications
         plist_dict_set_item(lookupOptions, "ApplicationType", plist_new_string("User"))
 
+        // Specify which attributes to return to check the app's signing status
+        let returnAttributes = plist_new_array()
+        plist_array_append_item(returnAttributes, plist_new_string("CFBundleIdentifier"))
+        plist_array_append_item(returnAttributes, plist_new_string("CFBundleDisplayName"))
+        plist_array_append_item(returnAttributes, plist_new_string("SignerIdentity"))
+        plist_array_append_item(returnAttributes, plist_new_string("Entitlements"))
+        plist_dict_set_item(lookupOptions, "ReturnAttributes", returnAttributes)
+
         guard instproxy_browse(instproxyClient, lookupOptions, &appList) == INSTPROXY_E_SUCCESS else {
             throw IdeviceError(source: .instproxy, code: INSTPROXY_E_UNKNOWN_ERROR.rawValue)
         }
@@ -132,29 +140,64 @@ class DeviceManager {
 
         for i in 0..<count {
             if let appDict = plist_array_get_item(appArray, i) {
-                var bundleIdPtr: UnsafeMutablePointer<CChar>? = nil
-                var appNamePtr: UnsafeMutablePointer<CChar>? = nil
+                var shouldAddApp = false
 
-                let bundleIdNode = plist_dict_get_item(appDict, "CFBundleIdentifier")
-                if bundleIdNode != nil {
-                    plist_get_string_val(bundleIdNode, &bundleIdPtr)
+                // 1. Check for "get-task-allow" entitlement, which indicates a debug build.
+                if let entitlementsNode = plist_dict_get_item(appDict, "Entitlements"),
+                   plist_get_node_type(entitlementsNode) == PLIST_DICT,
+                   let getTaskAllowNode = plist_dict_get_item(entitlementsNode, "get-task-allow") {
+
+                    var getTaskAllowValue: UInt8 = 0
+                    if plist_get_node_type(getTaskAllowNode) == PLIST_BOOLEAN {
+                        plist_get_bool_val(getTaskAllowNode, &getTaskAllowValue)
+                        if getTaskAllowValue != 0 {
+                            shouldAddApp = true
+                        }
+                    }
                 }
 
-                let appNameNode = plist_dict_get_item(appDict, "CFBundleDisplayName")
-                if appNameNode != nil {
-                    plist_get_string_val(appNameNode, &appNamePtr)
+                // 2. If not a debug build, check the signer identity for Ad-Hoc/Enterprise builds.
+                if !shouldAddApp {
+                    if let signerIdentityNode = plist_dict_get_item(appDict, "SignerIdentity") {
+                        var signerIdentityPtr: UnsafeMutablePointer<CChar>? = nil
+                        plist_get_string_val(signerIdentityNode, &signerIdentityPtr)
+
+                        if let signerIdentityPtr = signerIdentityPtr {
+                            let signerIdentity = String(cString: signerIdentityPtr)
+                            // App Store apps have a specific signer. We include anything that is NOT an App Store app.
+                            // This covers Ad-Hoc, Enterprise, and TestFlight builds.
+                            if !signerIdentity.starts(with: "Apple iPhone OS") {
+                                shouldAddApp = true
+                            }
+                            free(signerIdentityPtr)
+                        }
+                    }
                 }
 
-                // Use a more explicit and robust way to convert C strings to Swift Strings
-                // to avoid confusing the Swift compiler's type inference.
-                if let bundleIdPtr = bundleIdPtr, let appNamePtr = appNamePtr {
-                    let bundleId = String(cString: bundleIdPtr)
-                    let appName = String(cString: appNamePtr)
-                    apps.append(InstalledApp(bundleIdentifier: bundleId, name: appName))
-                }
+                // 3. If the app is identified as debug or ad-hoc, add it to the list.
+                if shouldAddApp {
+                    var bundleIdPtr: UnsafeMutablePointer<CChar>? = nil
+                    var appNamePtr: UnsafeMutablePointer<CChar>? = nil
 
-                free(bundleIdPtr)
-                free(appNamePtr)
+                    defer {
+                        free(bundleIdPtr)
+                        free(appNamePtr)
+                    }
+
+                    if let bundleIdNode = plist_dict_get_item(appDict, "CFBundleIdentifier") {
+                        plist_get_string_val(bundleIdNode, &bundleIdPtr)
+                    }
+
+                    if let appNameNode = plist_dict_get_item(appDict, "CFBundleDisplayName") {
+                        plist_get_string_val(appNameNode, &appNamePtr)
+                    }
+
+                    if let bundleIdPtr = bundleIdPtr, let appNamePtr = appNamePtr {
+                        let bundleId = String(cString: bundleIdPtr)
+                        let appName = String(cString: appNamePtr)
+                        apps.append(InstalledApp(bundleIdentifier: bundleId, name: appName))
+                    }
+                }
             }
         }
 
