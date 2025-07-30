@@ -15,13 +15,6 @@ struct ContentView: View {
             .onAppear {
                 viewModel.refreshDevices()
             }
-            .toolbar {
-                ToolbarItem(placement: .automatic) {
-                    Button(action: viewModel.refreshDevices) {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                }
-            }
     }
 }
 
